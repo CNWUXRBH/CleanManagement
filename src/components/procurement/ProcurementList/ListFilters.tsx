@@ -1,0 +1,66 @@
+import React from 'react';
+import { Search } from 'lucide-react';
+
+interface ListFiltersProps {
+  onSearch: (query: string) => void;
+  onStatusFilter: (status: string) => void;
+  onDateRangeFilter: (startDate: string, endDate: string) => void;
+}
+
+const ListFilters: React.FC<ListFiltersProps> = ({
+  onSearch,
+  onStatusFilter,
+  onDateRangeFilter,
+}) => {
+  return (
+    <div className="mb-6 grid grid-cols-4 gap-4">
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search className="h-5 w-5 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
+            leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 
+            focus:border-blue-500 sm:text-sm"
+          placeholder="搜索采购单..."
+          onChange={(e) => onSearch(e.target.value)}
+        />
+      </div>
+
+      <div>
+        <select
+          className="block w-full rounded-md border-gray-300 shadow-sm 
+            focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          onChange={(e) => onStatusFilter(e.target.value)}
+        >
+          <option value="">所有状态</option>
+          <option value="pending">待审批</option>
+          <option value="approved">已批准</option>
+          <option value="rejected">已拒绝</option>
+          <option value="completed">已完成</option>
+        </select>
+      </div>
+
+      <div>
+        <input
+          type="date"
+          className="block w-full rounded-md border-gray-300 shadow-sm 
+            focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          onChange={(e) => onDateRangeFilter(e.target.value, '')}
+        />
+      </div>
+
+      <div>
+        <input
+          type="date"
+          className="block w-full rounded-md border-gray-300 shadow-sm 
+            focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          onChange={(e) => onDateRangeFilter('', e.target.value)}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ListFilters;
