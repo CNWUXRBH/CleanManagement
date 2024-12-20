@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  password        String
+  name            String
+  role            Role            @default(STAFF)
+  department      Department?      @relation(fields: [departmentId], references: [id])
+  departmentId    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  drainageRecords DrainageRecord[]  @relation("DrainageCreator")
+  requisitions    Requisition[]    @relation("RequisitionCreator")
+  inventoryMovements InventoryMovement[] @relation("MovementCreator")
+  inventoryAdjustments InventoryAdjustment[] @relation("AdjustmentCreator")
+  createdItems    InventoryItem[]  @relation("ItemCreator")
+}
+
+model Department {
+  id          String        @id @default(uuid())
+  name        String        @unique
+  description String?
+  manager     String?
+  contactNumber String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  users       User[]
+  requisitions Requisition[]
+}
+
+model Location {
+  id          String          @id @default(uuid())
+  name        String          @unique
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  drainages   DrainageRecord[]
+}
+
+model DrainageRecord {
+  id          String    @id @default(uuid())
+  locationId  String
+  location    Location  @relation(fields: [locationId], references: [id])
+  amount      Float
+  description String
+  date        DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  creatorId   String
+  creator     User      @relation("DrainageCreator", fields: [creatorId], references: [id])
+}
+
+model InventoryItem {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  quantity    Int       @default(0)
+  unit        String
+  category    String?
+  location    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  creatorId   String
+  creator     User      @relation("ItemCreator", fields: [creatorId], references: [id])
+  movements   InventoryMovement[]
+  adjustments InventoryAdjustment[]
+  requisitionItems RequisitionItem[]
+}
+
+model InventoryMovement {
+  id          String    @id @default(uuid())
+  type        MovementType
+  quantity    Int
+  reason      String
+  createdAt   DateTime  @default(now())
+  itemId      String
+  item        InventoryItem @relation(fields: [itemId], references: [id])
+  creatorId   String
+  creator     User      @relation("MovementCreator", fields: [creatorId], references: [id])
+}
+
+model InventoryAdjustment {
+  id              String    @id @default(uuid())
+  previousQuantity Int
+  newQuantity     Int
+  reason          String
+  createdAt       DateTime  @default(now())
+  itemId          String
+  item            InventoryItem @relation(fields: [itemId], references: [id])
+  creatorId       String
+  creator         User      @relation("AdjustmentCreator", fields: [creatorId], references: [id])
+}
+
+model Requisition {
+  id          String    @id @default(uuid())
+  status      RequisitionStatus @default(PENDING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  department  Department @relation(fields: [departmentId], references: [id])
+  departmentId String
+  creator     User      @relation("RequisitionCreator", fields: [creatorId], references: [id])
+  creatorId   String
+  items       RequisitionItem[]
+}
+
+model RequisitionItem {
+  id            String    @id @default(uuid())
+  quantity      Int
+  requisition   Requisition @relation(fields: [requisitionId], references: [id])
+  requisitionId String
+  item          InventoryItem @relation(fields: [itemId], references: [id])
+  itemId        String
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  STAFF
+}
+
+enum MovementType {
+  IN
+  OUT
+}
+
+enum RequisitionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+} 
